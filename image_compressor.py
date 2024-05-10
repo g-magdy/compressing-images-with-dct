@@ -1,18 +1,25 @@
-import os
-import cv2
-import math
+import os, cv2, math
 import numpy as np
 from scipy.fftpack import dct, idct
 
-IMAGE_FILENAME = "test.png"
+IMAGE_FILENAME = "image1.png"
+
+COLOR_COMPONENT = 1
+COMPRESSED = 2
+DECOMPRESSED = 3
 
 def main():
-    base, ext = os.path.splitext(IMAGE_FILENAME)
+    BASE, EXT = os.path.splitext(IMAGE_FILENAME)
     original_image = cv2.imread(IMAGE_FILENAME)
     blue_matrix, green_matrix, red_matrix = cv2.split(original_image)
     showImage(blue_matrix, "blue_component")
+    saveImage(blue_matrix, f"{BASE}_blue", COLOR_COMPONENT)
+    
     showImage(green_matrix, "green_component")
+    saveImage(green_matrix, f"{BASE}_green", COLOR_COMPONENT)
+    
     showImage(red_matrix, "red_component")
+    saveImage(red_matrix, f"{BASE}_red", COLOR_COMPONENT)
     # compress the same image 4 times with different ratios
     for m in [1, 2, 3, 4]:
         # compress
@@ -20,23 +27,31 @@ def main():
         green_matrix_comp = compress(green_matrix, m)
         red_matrix_comp = compress(red_matrix, m)
         compressed_image = np.stack((blue_matrix_comp, green_matrix_comp, red_matrix_comp), axis=2).astype(np.uint8)
-        showImage(compressed_image, f"{base}_comp_m{m}")
+        # showImage(compressed_image, f"{BASE}_comp_m{m}")
+        saveImage(compressed_image, f"{BASE}_comp_m{m}", COMPRESSED)
 
         # decompress
         blue_matrix_decomp = decompress(blue_matrix, m)
         green_matrix_decomp = decompress(green_matrix, m)
         red_matrix_decomp = decompress(red_matrix, m)
         decompressed_image = np.stack((blue_matrix_decomp, green_matrix_decomp, red_matrix_decomp), axis=2).astype(np.uint8)
-        showImage(decompressed_image, f"{base}_decomp_m{m}")
+        showImage(decompressed_image, f"{BASE}_decomp_m{m}")
+        saveImage(decompressed_image, f"{BASE}_decomp_m{m}", DECOMPRESSED)
         PSNR = calcPSNR(original_image, decompressed_image)
         print(f"PSNR for m = {m} is {PSNR}")
 
 def showImage(matrix : np.ndarray, filename : str):
-    cv2.imwrite(f"{filename}.png", matrix)
     cv2.imshow(f"{filename}.png", matrix)
     cv2.waitKey()
     cv2.destroyAllWindows()
     
+def saveImage(matrix: np.ndarray, filename : str, category : int):
+    if category == COLOR_COMPONENT:
+        cv2.imwrite(f"./color_components/{filename}.png", matrix)
+    elif category == COMPRESSED:
+        cv2.imwrite(f"./compressed_images/{filename}.png", matrix)
+    else:
+        cv2.imwrite(f"./decompressed_images/{filename}.png", matrix)
     
 def DCT2(matrix : np.ndarray):
     matrix = matrix.astype(float)
