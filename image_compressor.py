@@ -4,7 +4,7 @@ import math
 import numpy as np
 from scipy.fftpack import dct, idct
 
-IMAGE_FILENAME = "image1.png"
+IMAGE_FILENAME = "test.png"
 
 def main():
     base, ext = os.path.splitext(IMAGE_FILENAME)
@@ -20,7 +20,7 @@ def main():
         green_matrix_comp = compress(green_matrix, m)
         red_matrix_comp = compress(red_matrix, m)
         compressed_image = np.stack((blue_matrix_comp, green_matrix_comp, red_matrix_comp), axis=2).astype(np.uint8)
-        #showImage(compressed_image, f"{base}_comp_m{m}")
+        showImage(compressed_image, f"{base}_comp_m{m}")
 
         # decompress
         blue_matrix_decomp = decompress(blue_matrix, m)
